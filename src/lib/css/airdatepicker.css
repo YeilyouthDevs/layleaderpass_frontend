@@ -1,0 +1,50 @@
+/* AirDatepicker 스타일 변경.. */
+.air-datepicker-overlay {
+	background-color: rgba(0, 0, 0, 0.2) !important;
+	--adp-overlay-z-index: calc(var(--z-orders-date-picker) - 1) !important;
+}
+
+.air-datepicker {
+	--adp-z-index: var(--z-orders-date-picker) !important;
+}
+
+.air-datepicker-body--day-name {
+	font-weight: bold !important;
+	color: rgb(61, 61, 61) !important;
+}
+
+.-weekend-[data-day-index="0"] {
+	color: rgb(221, 76, 57) !important;
+}
+
+.-weekend-[data-day-index="6"] {
+	color: rgb(46, 144, 255) !important;
+}
+
+.datepicker-prompt {
+	font-size: 0.9rem;
+	text-align: center;
+	color: rgb(99, 99, 99);
+	padding: 0.5rem ;
+	border-bottom: 1px solid rgb(210, 210, 210, 0.4);
+}
+
+.air-datepicker-body {
+	font-size: 1.05rem;
+}
+
+.air-datepicker-nav--title {
+	font-size: 1.1rem;
+	font-weight: bold;
+}
+
+.air-datepicker-button {
+	height: 2.6rem !important;
+}
+
+.air-datepicker-time--row {
+	height: 2.5rem !important;
+}
+
+
+/* ..AirDatepicker 스타일 변경 */
