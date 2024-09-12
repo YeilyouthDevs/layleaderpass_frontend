@@ -27,6 +27,8 @@
     const revokeSortSchema: SortSchema = [
         { name: '최신순', value: 'latest' },
         { name: '오래된순', value: 'oldest' },
+        { name: '지급대상자 이름순', value: 'userName' },
+        { name: '훈련 이름순', value: 'trainingName' },
     ]
 
     const grantSearchSchema: SearchSchema = [
