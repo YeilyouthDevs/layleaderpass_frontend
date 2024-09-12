@@ -39,9 +39,9 @@
         }
     }
 
-    // async function syncTalent() {
-    //     return await axios.get('/api/developer/syncTalent')
-    // }
+    async function syncTalent() {
+        return await axios.get('/api/developer/syncTalent')
+    }
 
     // async function clearAlienFileSet() {
     //     return await axios.get('/api/developer/clearAlienFileSet')
@@ -52,9 +52,9 @@
 <PageContainer title="개발자 메뉴">
     {#if developerEmail}
         <div class="row g-2 mt-2">
-            <!-- <div class="col-12">
+            <div class="col-12">
                 <button class="btn btn-secondary btn-height w-100" on:click={() => execute(syncTalent)}>달란트 동기화</button>
-            </div> -->
+            </div>
             <!-- <div class="col-12">
                 <button class="btn btn-secondary btn-height w-100" on:click={() => execute(clearAlienFileSet)}>외계파일셋 제거</button>
             </div> -->

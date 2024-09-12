@@ -74,7 +74,6 @@
     /** 첫 페이지 요청 시간 */
     let startAt: string | undefined;
     /** 검색 Div 바인딩 */
-    // let searchBind: HTMLInputElement;
     let searchString: string;
     /** 현재 페이지 데이터를 담는 Map */
     let pageItems = new Map();
@@ -84,8 +83,13 @@
 
     async function extractSearchPlaceholder() {
         searchPlaceholder = null;
+        searchString = '';
         await tick();
+
         searchPlaceholder = searchSelect?.selectedOptions?.[0]?.innerText;
+        await tick();
+
+        searchSlidingBox.resize();
     }
 
     function clearAll(options: {clearPageContext?:boolean; clearStartAt?:boolean, skipSelectMode?: boolean} = {}){
@@ -443,7 +447,6 @@
         const result = results?.[0] || results;
 
         if (specItem){  // 상세보기를 통한 단일작업
-            // const result = resultSet.results[0];
             if (result.status) closeSpec(true);
         } else { // 작업메뉴를 통한 다중작업
             closeWorkMenu();
@@ -558,14 +561,15 @@
     async function onClickTab(tab: any, index: any) {
         selectedTab = index;
 
+        dispatch('beforeTabChange');
         clearAll({ clearPageContext: true, clearStartAt: true })
-        tab.onClick()
+        await tab.onClick()
         await tick();
-
-        searchSlidingBox.resize()
 
         if (!sortSelect.value) currentSort = sortSchema[0].value;
         if (!searchSelect.value) currentSearchBy = searchSchema[0].value;
+
+        await extractSearchPlaceholder();
 
         fetch();
     }
@@ -575,15 +579,13 @@
     const dispatch = createEventDispatcher();
 
     onMount(async () => {
-        await tick();
+        // await tick();
         await loadFetchDataFromLocalStorage();
 
         await extractSearchPlaceholder();
-        await fetch();
+        if (showSearchOption === true) await searchSlidingBox.open();
 
-        if (showSearchOption === true) {
-            searchSlidingBox.open();
-        }
+        await fetch();
     })
 
 </script>
@@ -592,8 +594,8 @@
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <div class="container-fluid g-0">
 
-    <div class="row g-2 mt-2">
-        <SlidingBox clazz="col-12" bind:this={searchSlidingBox} bind:show={showSearchOption}>
+    <div class="row g-1 mt-2">
+        <SlidingBox clazz="" bind:this={searchSlidingBox} bind:show={showSearchOption}>
             <div class="d-flex gap-1 pb-1">
                 <!-- 보기 수 -->
                 <FormField floating dataScope="dataviewer" noEditMark style="width:25%">
@@ -628,8 +630,7 @@
             <slot name="searchOption" {currentSearchBy} {currentSort}></slot>
 
             {#if searchSchema && searchPlaceholder}
-            <!-- <div class="col-12"> -->
-            <div class="d-flex gap-1 pb-1">
+            <div class="d-flex gap-1">
                 <!-- 검색 -->
                 <FormField floating dataScope="dataviewer" clazz="w-100" noEditMark>
                     <input id="search" name="{searchPlaceholder} 검색" class="form-control" bind:value={searchString}>
@@ -643,7 +644,6 @@
                     <img src="/images/search_icon.png" alt="검색">
                 </div>
             </div>
-            <!-- </div> -->
             {/if}
 
             <slot name="underSearch" {currentSearchBy} {currentSort}></slot>
@@ -652,7 +652,7 @@
 
         <div class="row g-0">
             <!-- 검색옵션 토글 버튼 -->
-            <div class="col-12 g-1">
+            <div class="col-12 gy-1 gx-0">
                 <button class="btn btn-light w-100 text-secondary" on:click={toggleSearchOption}>{showSearchOption ? '▲' : '검색옵션'}</button>
             </div>
 

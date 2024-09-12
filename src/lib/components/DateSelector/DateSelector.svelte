@@ -48,13 +48,10 @@
         input = inputElem;
         const value = input.value;
 
-        console.log('날짜값:', value);
-
         if (!value) {
             selectNow();
         } else {
             parseAndSelect(value);
-            console.log('parsing', value)
         }
 
         await modal?.show();
@@ -296,8 +293,6 @@
             selectedDay = day;
             selectedDayOfWeek = dayOfWeekPart.replace(/[()]/g, ''); // Remove parentheses
         }
-
-        console.log(selectedYear, selectedMonth, selectedDay, selectedHour, selectedMinute, selectedDayOfWeek);
 
         updateDays();
         updateDayOfWeek();

@@ -1,8 +1,6 @@
 <script lang="ts">
-	import { onMount } from "svelte";
-
-	
-	
+  import { onMount } from "svelte";
+  
   export let show: boolean = false;
   export let clazz: string = '';
   export let style: string = '';
@@ -11,7 +9,7 @@
   
   export async function open() {
     show = true;
-    resize();
+    await resize();
   }
 
   export function close() {
@@ -19,14 +17,13 @@
     resize();
   }
 
-  export function resize() {
+  export async function resize() {
     if (contentElement) {
-
       if (show) {
         let heightSum = 0;
 
         for (const child of contentElement.children) {
-          heightSum += child.scrollHeight;
+            heightSum += child.scrollHeight;
         }
 
         contentElement.style.height = `${heightSum}px`;
@@ -39,8 +36,7 @@
   onMount(() => {
     if (show) open();
     else close();
-  })
-
+  });
 </script>
 
 <style>

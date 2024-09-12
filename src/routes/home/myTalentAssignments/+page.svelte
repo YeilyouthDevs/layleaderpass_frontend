@@ -7,7 +7,6 @@
 	import TimeStamp from '$lib/components/TimeStamp.svelte';
 	import TrainingTypeIndicator from '$lib/components/TrainingTypeIndicator.svelte';
 	import { formatDatetime } from '$lib/script/lib/formatDatetime';
-	import axios from 'axios';
 	import CategorySelector from '../CategorySelector.svelte';
 	import TrainingHeaderIndicator from '$lib/components/TrainingHeaderIndicator.svelte';
   

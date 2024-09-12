@@ -74,9 +74,17 @@ export function formatDatetime(date: string | Date, options: FormatDatetimeOptio
 	}
 }
 
+interface ParseDateOption {
+	timezone?: string;
+	setTimeEnd?: boolean;
+	toISOString?: boolean;
+}
 
-export function parseDate(dateString: string, timezone: string = '+09:00') {
+
+export function parseDate(dateString: string, options?: ParseDateOption) {
 	if (!dateString) throw new Error('빈 문자열입니다.');
+
+	const { timezone="+09:00", setTimeEnd, toISOString } = options || {};
 
 	// 날짜와 시간 부분 분리
 	const datePattern = /^(\d{4}-\d{2}-\d{2})/;
@@ -91,7 +99,20 @@ export function parseDate(dateString: string, timezone: string = '+09:00') {
 	const timePart = timeMatch ? timeMatch[1] : '00:00';
 
 	const dateTimeFormat = `${datePart}T${timePart}:00${timezone}`;
+	let returnDate: string | Date = new Date(dateTimeFormat);
 
-	return new Date(dateTimeFormat);
+	if (setTimeEnd) {
+		returnDate.setHours(23, 59, 0, 0);
+	}
+
+	if (toISOString) {
+		returnDate = returnDate.toISOString();
+	}
+
+	return returnDate;
+}
+
+export function convertDate(valueObject: any, fieldName: string, options?: ParseDateOption) {
+	if(valueObject[fieldName]) valueObject[fieldName] = parseDate(valueObject[fieldName], options);
 }
 

@@ -10,9 +10,9 @@
         <div class="col-12">
             <button class="btn btn-secondary btn-height w-100" on:click={() => goto('/adminMenu/submissionManage')}>자료제출 관리</button>
         </div>
-        <!-- <div class="col-12">
+        <div class="col-12">
             <button class="btn btn-secondary btn-height w-100" on:click={() => goto('/adminMenu/talentAssignmentManage')}>달란트 지급 관리</button>
-        </div> -->
+        </div>
         <div class="col-12">
             <button class="btn btn-secondary btn-height w-100" on:click={() => goto('/adminMenu/trainingTypeManage')}>훈련타입 관리</button>
         </div>
