@@ -13,9 +13,10 @@
     let graphData: any;
     let currentSeason: any;
 
-    let maxValue = 0;
+    let maxGraphValue = 0;
     let sum = 0;
-    let ticks = [0, 70, 150, 237]; // 눈금 위치 배열 (여기에 원하는 특정 지점 추가)
+    let ticks = [0, 80, 180, 300]; // 눈금 위치 배열 (여기에 원하는 특정 지점 추가)
+    let maxTick = ticks.at(-1) || 0;
     let flagImage = "/images/running_kid.gif"; // 깃발 이미지 URL
     let mounted : boolean;
 
@@ -40,7 +41,7 @@
 
             sum = 0;
             for (const item of graphData) {
-                if (item.totalAmount > maxValue) maxValue = item.totalAmount;
+                if (item.totalAmount > maxGraphValue) maxGraphValue = item.totalAmount;
                 sum += item.totalAmount;
             }
 
@@ -85,7 +86,7 @@
         {#if currentSeason}
             <div class="col-12">
                 {#if ticks}
-                    <HorizontalLine clazz="px-3 pt-2" maxValue={237} {ticks} value={sum} {flagImage} />
+                    <HorizontalLine clazz="px-3 pt-2" maxValue={maxTick} {ticks} value={sum} {flagImage} />
                 {/if}
             </div>
             <div class="col-12">
@@ -99,7 +100,7 @@
             </div>
             <div class="col-12">
                 {#each graphData as item}
-                    <GraphElement label={item.categoryName} value={item.totalAmount} maxValue={maxValue} duration={1} on:click={() => goto('/home/myTalentAssignments?categoryId=' + item.categoryId)} />
+                    <GraphElement label={item.categoryName} value={item.totalAmount} maxValue={maxGraphValue} duration={1} on:click={() => goto('/home/myTalentAssignments?categoryId=' + item.categoryId)} />
                 {/each}
             </div>
         {/if}

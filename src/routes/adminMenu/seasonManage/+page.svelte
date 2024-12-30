@@ -6,7 +6,6 @@
 	import { DateMode } from "$lib/components/DateSelector/script";
 	import FormField from "$lib/components/FormField.svelte";
 	import PageContainer from "$lib/components/PageContainer.svelte";
-	import SimpleDesc from "$lib/components/SimpleDesc.svelte";
 	import UpdatedBy from "$lib/components/TimeStamp.svelte";
 	import { formatDatetime, parseDate } from "$lib/script/lib/formatDatetime";
 	import { Validation, type ValidationSchema } from '$lib/script/lib/validation';

@@ -1,5 +1,5 @@
 import { loadingStore } from "$lib/stores/loadingStore";
-import axios from "axios";
+import axios, { type AxiosResponse } from "axios";
 import type DataViewer from "./DataViewer.svelte";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -41,6 +41,7 @@ export interface WorkResult {
     id: string | number;
     status: boolean;
     message?: string;
+    response?: AxiosResponse;
 }
 
 export interface WorkSet {

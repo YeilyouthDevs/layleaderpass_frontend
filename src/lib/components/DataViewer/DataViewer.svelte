@@ -556,6 +556,14 @@
 
     }
 
+    export async function selectAvailableOptions() {
+        await tick();
+
+        if (limitSchema[0] && !limitSelect.value) currentLimit = limitSchema[0].toString();
+        if (sortSchema[0] && !sortSelect.value) currentSort = sortSchema[0].value;
+        if (searchSchema[0] && !searchSelect.value) currentSearchBy = searchSchema[0].value;
+    }
+
     let searchSlidingBox: SlidingBox;
 
     async function onClickTab(tab: any, index: any) {
@@ -566,8 +574,10 @@
         await tab.onClick()
         await tick();
 
-        if (!sortSelect.value) currentSort = sortSchema[0].value;
-        if (!searchSelect.value) currentSearchBy = searchSchema[0].value;
+        // console.log(sortSchema, sortSelect.value)
+        // if (!sortSelect.value) currentSort = sortSchema[0].value;
+        // if (!searchSelect.value) currentSearchBy = searchSchema[0].value;
+        selectAvailableOptions();
 
         await extractSearchPlaceholder();
 
@@ -593,13 +603,14 @@
 <!-- svelte-ignore a11y-no-static-element-interactions -->
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <div class="container-fluid g-0">
-
     <div class="row g-1 mt-2">
+        <slot name="top"></slot>
+
         <SlidingBox clazz="" bind:this={searchSlidingBox} bind:show={showSearchOption}>
             <div class="d-flex gap-1 pb-1">
                 <!-- 보기 수 -->
                 <FormField floating dataScope="dataviewer" noEditMark style="width:25%">
-                    <select id="limit" name="보기 수" class="form-select" bind:this={limitSelect} on:change={() => fetch()} bind:value={currentLimit}>
+                    <select id="limit" name="보기 수" class="form-select" bind:this={limitSelect} bind:value={currentLimit}>
                         {#each limitSchema as item}
                         <option value="{item}">{item}</option>     
                         {/each}
@@ -608,7 +619,7 @@
                 <!-- 정렬 -->
                  <div class="d-flex gap-1 flex-grow-1">
                     <FormField floating dataScope="dataviewer" noEditMark style="width:50%">
-                        <select id="sort" name="정렬" class="form-select" on:change={() => fetch()} bind:this={sortSelect} bind:value={currentSort}>
+                        <select id="sort" name="정렬" class="form-select" bind:this={sortSelect} bind:value={currentSort}>
                             {#each sortSchema as item}
                                 <option value="{item.value}">{item.name}</option>
                             {/each}
@@ -682,6 +693,8 @@
             {/if}
         </div>
     </div>
+ 
+    <slot name="underWork"></slot>
 
     <div class="row g-0 mt-2">
 

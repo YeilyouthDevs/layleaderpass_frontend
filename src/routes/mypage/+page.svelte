@@ -8,6 +8,9 @@
 
         <div class="row g-2 mt-2">
             <div class="col-12">
+                <button class="btn btn-secondary btn-height w-100" on:click={() => goto('/mypage/showAcceptNo')}>가입승인번호 확인</button>
+            </div>
+            <div class="col-12">
                 <button class="btn btn-secondary btn-height w-100" on:click={() => goto('/mypage/editUser')}>사용자 정보 수정</button>
             </div>
             <div class="col-12">

@@ -234,7 +234,7 @@
                     onFailOne: (item, result) => {
                         alertStore.fail({
                             title: '승인 및 지급 실패',
-                            content: result.message!,
+                            content: result.response?.data.message,
                             duration: 3000
                         });
                     }

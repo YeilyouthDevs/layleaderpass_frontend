@@ -66,9 +66,7 @@
         showSearchOption={true}
     >
         <div slot="searchOption">
-        <CategorySelector clazz="pb-1" bind:fetchPayload {categoryId} afterCallback={() => {
-            dataViewer.fetch();
-        }} />     
+        <CategorySelector clazz="pb-1" bind:fetchPayload {categoryId} />     
         </div>
   
         <div slot="item" class="item w-100" let:item>

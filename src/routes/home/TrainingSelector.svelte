@@ -1,16 +1,21 @@
 <script lang="ts">
 	import FormField from "$lib/components/FormField.svelte";
 	import Modal from "$lib/components/Modal.svelte";
-	import { Validation } from "$lib/script/lib/validation";
+	import { validate, Validation } from "$lib/script/lib/validation";
 	import { notEmptyValidation } from "$lib/script/lib/validationSchemas";
 	import axios from "axios";
+	import { createEventDispatcher } from "svelte";
 
     let modal: Modal;
     let formBind: HTMLElement;
+    let searchBind: HTMLInputElement;
 
     let trainings: any[] | undefined;
     let trainingTitle: string | undefined;
     export let trainingId: string | undefined;
+    export let trainingTypeId: string | undefined;
+
+    const dispatch = createEventDispatcher();
 
     async function searchTraining() {
         const values = Validation.checkAndGetValues(formBind)!;
@@ -29,6 +34,8 @@
             if (firstTraining) {
                 trainingId = firstTraining['id'];
                 trainingTitle = firstTraining['title'];
+                trainingTypeId = firstTraining['trainingTypeId']
+                dispatch('set');
             }
             
         } catch (error) {
@@ -37,9 +44,13 @@
     }
 
     function reset() {
+        searchBind.value = '';
+        validate(searchBind, notEmptyValidation);
         trainings = undefined;
         trainingId = undefined;
         trainingTitle = undefined;
+        trainingTypeId = undefined;
+        dispatch('set');
     }
 
 </script>
@@ -54,7 +65,7 @@
 
     <div class="d-flex flex-column gap-2" bind:this={formBind}>
         <FormField floating noEditMark clazz="w-100" validation={notEmptyValidation} let:validate>
-            <input id="searchTrainingTitle" name="훈련 제목" class="form-control" on:input={e => validate(e.currentTarget)} />
+            <input id="searchTrainingTitle" name="훈련 제목" class="form-control" bind:this={searchBind} on:input={e => validate(e.currentTarget)} />
         </FormField>
 
         <div class="d-flex gap-1">
@@ -69,6 +80,7 @@
                     <div class="form-floating w-100">
                         <select id="trainingSelect" class="form-select" bind:value={trainingId} on:change={(e) => {
                             trainingTitle = e.currentTarget.selectedOptions[0].innerText;
+                            dispatch('set');
                         }}>
                             {#each trainings as training}
                                 <option value={training.id}>{training.title}</option>

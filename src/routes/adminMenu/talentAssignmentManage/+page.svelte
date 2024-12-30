@@ -8,20 +8,31 @@
 	import PageContainer from "$lib/components/PageContainer.svelte";
 	import TrainingTypeIndicator from '$lib/components/TrainingTypeIndicator.svelte';
 	import UserContact from '$lib/components/UserContact.svelte';
-	import { convertDate, formatDatetime } from '$lib/script/lib/formatDatetime';
+	import { convertDates, formatDatetime } from '$lib/script/lib/formatDatetime';
 	import { Validation } from '$lib/script/lib/validation';
 	import { UserRole, userStore } from '$lib/stores/userStore';
+	import axios from 'axios';
 	import TrainingSelector from '../../home/TrainingSelector.svelte';
+	import TrainingHeaderIndicator from '$lib/components/TrainingHeaderIndicator.svelte';
+	import UserSelector from '../../home/UserSelector.svelte';
+	import UserTalentGranter from '$lib/components/UserTalentGranter.svelte';
 
     const pageTitle = "달란트 지급 관리";
         
     let dataViewer: DataViewer;
-    let formBind: Element;
     let searchBind: HTMLElement;
     
-    const grantSortSchema: SortSchema = [
+    const byTrainingSortSchema: SortSchema = [
         { name: '이름순', value: 'name' },
         { name: '달란트순', value: 'talent' },
+    ]
+
+    const byTrainingSelectedSortSchema: SortSchema = [
+        { name: '이름순', value: 'name' },
+    ]
+
+    const byTrainingSearchSchema: SearchSchema = [
+        { name: '이름', value: 'userName' }
     ]
 
     const revokeSortSchema: SortSchema = [
@@ -29,10 +40,6 @@
         { name: '오래된순', value: 'oldest' },
         { name: '지급대상자 이름순', value: 'userName' },
         { name: '훈련 이름순', value: 'trainingName' },
-    ]
-
-    const grantSearchSchema: SearchSchema = [
-        { name: '이름', value: 'userName' }
     ]
 
     const revokeSearchSchema: SearchSchema = [
@@ -50,7 +57,6 @@
     //     clickCount: 1,
     //     render: (workSet?: WorkSet) => true,
     //     onClick: async (workSet: WorkSet) => {
-
     //     }
     // }
 
@@ -87,30 +93,51 @@
         render: (workSet?: WorkSet) => true,
         onClick: async (workSet: WorkSet) => {
 
-        },
+        }
+    }
+
+    const openGranter: WorkDefinition = {
+        name: '지급',
+        class: 'btn btn-primary btn-height w-100',
+        grid: 'col-6',
+        workType: WorkType.BOTH,
+        clickCount: 1,
+        render: (workSet?: WorkSet) => true,
+        onClick: async (workSet: WorkSet) => {
+            dataViewer.closeWorkMenu();
+            talentGranter.open();
+        }
     }
 
     let idName:string = 'id';
     let fetchURL: string;
     let specURL: string | undefined;
     let limitSchema: LimitSchema = [ 10, 20, 30, 40, 50 ]
-    let sortSchema: SortSchema = grantSortSchema;
+    let sortSchema: SortSchema = byTrainingSortSchema;
     // let workSchema: WorkSchema = { grant, revokeSpec, revokeWork };
-    let workSchema: WorkSchema = { onPrepare };
-    let searchSchema: SearchSchema = grantSearchSchema;
+    let workSchema: WorkSchema;
+    let searchSchema: SearchSchema = byTrainingSearchSchema;
 	let dateSelector: DateSelector;
     let trainingId: string | undefined;
+    let trainingTypeId: string | undefined;
+    let targetUserEmail: string | undefined;
     let fetchPayload: any = {}
 
-    enum DataTab { GRANT, REVOKE };
-    let dataTab: DataTab = DataTab.GRANT;
+    enum DataTab { BY_TRAIN, BY_USER, REVOKE };
+    let dataTab: DataTab = DataTab.BY_TRAIN;
 
     const tabSchema: TabSchema = [
         {
-            name: '지급',
+            name: '훈련기준 지급',
             select: true,
             onClick: () => {
-                dataTab = DataTab.GRANT
+                dataTab = DataTab.BY_TRAIN
+            }
+        },
+        {
+            name: '유저기준 지급',
+            onClick: () => {
+                dataTab = DataTab.BY_USER
             }
         },
         {
@@ -121,23 +148,39 @@
         },
     ]
 
-    $: if (dataTab === DataTab.GRANT) {
+    $: if (dataTab === DataTab.BY_TRAIN) {
         idName = 'email';
-        fetchURL = '/api/talentAssignmentManage/list/grant';
+        fetchURL = '/api/talentAssignmentManage/list/byTrain';
         specURL = undefined;
-        sortSchema = grantSortSchema;
-        searchSchema = grantSearchSchema;
-        // workSchema = { grant }
-    }
-     else if(dataTab === DataTab.REVOKE){
+        // sortSchema = grantSortSchema
+        switchSortSchemaByTrainingId();
+        searchSchema = byTrainingSearchSchema;
+        workSchema = { onPrepare };
+    } else if(dataTab === DataTab.BY_USER){
+        idName = 'id';
+        fetchURL = '/api/talentAssignmentManage/list/byUser';
+        // specURL = '/api/talentAssignmentManage/spec';
+        specURL = undefined;
+        sortSchema = revokeSortSchema;
+        searchSchema = revokeSearchSchema;
+        workSchema = { openGranter }
+    } else if(dataTab === DataTab.REVOKE){
         idName = 'id';
         fetchURL = '/api/talentAssignmentManage/list/revoke';
         // specURL = '/api/talentAssignmentManage/spec';
         specURL = undefined;
         sortSchema = revokeSortSchema;
         searchSchema = revokeSearchSchema;
-        // workSchema = { revokeSpec, revokeWork }
+        workSchema = { onPrepare };
     }
+
+    function switchSortSchemaByTrainingId() {
+        if (trainingId) sortSchema = byTrainingSelectedSortSchema;
+        else sortSchema = byTrainingSortSchema;
+        dataViewer?.selectAvailableOptions();
+    }
+
+    let talentGranter: UserTalentGranter;
 
 </script>
 
@@ -158,61 +201,77 @@
         useWorkUI={$userStore.role === UserRole.ADMIN}
         showSearchOption={true}
         on:beforeSearch={() => {
-            const values = Validation.getValues(searchBind);
-            convertDate(values, 'searchStartDate', { toISOString: true })
-            convertDate(values, 'searchEndDate', { setTimeEnd: true, toISOString: true })
-            fetchPayload = values;
+            if (dataTab === DataTab.REVOKE) {
+                const values = Validation.getValues(searchBind);
+                convertDates(values, ['searchStartDate'])
+                convertDates(values, ['searchEndDate'], { setTimeEnd: true })
+                fetchPayload = values;
+            }
 
             if(trainingId) fetchPayload['trainingId'] = trainingId;
-        }}
-        on:beforeTabChange={() => {
-            trainingId = undefined;
+            else delete fetchPayload['trainingId']
+            console.log(fetchPayload)
         }}
     >
         <div slot="item" class="w-100" let:item>
-            <div class="border-top border-bottom p-2" style="min-height: 3rem;">
-                {#if dataTab === DataTab.GRANT}
-                <div class="d-flex">
+            <div class="border-top border-bottom" style="min-height: 3rem;">
+                {#if dataTab === DataTab.BY_TRAIN}
+                <div class="d-flex p-2">
                     <div class="flex-grow-1 d-flex flex-column justify-content-center">
                         <p class="name">{item.name}</p>
                         <p class="small text-secondary">{formatDatetime(item.birthday, { includeTime: false })} 생</p>
                     </div>
                     <div class="d-flex gap-1 align-items-center justify-content-between">
-                        <p class="small text-secondary text-nowrap">총 획득</p>
-                        <img class="talent-icon" src="/images/talent_icon.png" alt="달란트아이콘">
-                        <p class="talent-amount">{item.talent || 0}</p>
+                        {#if fetchPayload.trainingId}
+                            <p class="small text-secondary text-nowrap">훈련 획득</p>
+                            <img class="talent-icon" src="/images/talent_icon.png" alt="달란트아이콘">
+                            <p class="talent-amount">{item.talentSums?.sum || 0}</p>
+                        {:else}
+                            <p class="small text-secondary text-nowrap">총 획득</p>
+                            <img class="talent-icon" src="/images/talent_icon.png" alt="달란트아이콘">
+                            <p class="talent-amount">{item.talent || 0}</p>     
+                        {/if}
+                            
                     </div>
                 </div>
+                {:else if dataTab === DataTab.BY_USER}
+                <div class="d-flex flex-column p-1">
+                    <p>{item.title}</p>
+                    <div class="small text-secondary text-pretty">
+						{#if !item.startAt && !item.endAt}
+							<p>기한 없음</p>
+						{:else}
+							<p>
+								{formatDatetime(item.startAt, { includeSeconds: false })} ~ {formatDatetime(
+									item.endAt,
+									{ includeSeconds: false }
+								)}
+							</p>
+						{/if}
+					</div>
+                </div>
                 {:else if dataTab === DataTab.REVOKE}
-                <div class="d-flex position-relative">
-                    <div class="flex-grow-1 d-flex flex-column justify-content-center">
+                <div class="d-flex flex-column p-1" >
+                    <div class="d-flex flex-column">
                         <p class="text-primary small">{item.training.title}</p>
-                        <div class="d-flex flex-column justify-content-center">
+                        <div class="d-flex justify-content-between" style="padding: 0.15rem;">
                             <p class="name">{item.user.name}</p>
-                        </div>
-                        <p class="small text-secondary">{formatDatetime(item.createdAt, { includeSeconds: false })}</p>
-                    </div>
-                    <div class="position-absolute approve-stamp-wrap">
-                        <img src="/images/approved_stamp.png" alt="승인도장" class="w-100 h-100">
-                    </div>
-                    <div class="d-flex flex-column gap-1 justify-content-center align-items-end">
-                        <div class="d-flex gap-1 align-items-center justify-content-between">
-                            <img class="talent-icon" src="/images/talent_icon.png" alt="달란트아이콘">
-                            <p class="talent-amount">{item.amount}</p>
-                        </div>
-                        <div class="small d-flex gap-1 align-items-center justify-content-end">
-                            
-                            
-                            {#if item?.creater}
-                                <p class="text-secondary" style="font-size: 0.6rem;">지급자</p>
-                                <p>{item?.creater?.name}</p>
-                            {:else}
-                                <p class="text-danger text-nowrap" style="font-size: 0.6rem;">탈퇴함</p>
-                                <p class="text-secondary" style="word-break: break-all; text-decoration: line-through;">{item?.createdBy}</p>
-                            {/if}
+                            <div class="d-flex gap-1 align-items-center">
+                                <img class="talent-icon" src="/images/talent_icon.png" alt="달란트아이콘">
+                                <p class="talent-amount">{item.amount}</p>
+                            </div>
                         </div>
                     </div>
-
+                    <div class="d-flex justify-content-between gap-1 w-100" style="font-size: 0.7rem;">
+                        <div class="d-flex gap-1 align-items-center">
+                            <p class="text-secondary text-nowrap">지급일시</p>
+                            <p style="line-height: 0.8rem;">{formatDatetime(item.createdAt, { includeSeconds: false })}</p>
+                        </div>
+                        <div class="d-flex gap-1 align-items-center" style="max-width: 55%;">
+                            <p class="text-secondary text-nowrap">지급자</p>
+                            <UserContact email={item.creator?.email || item.createdBy} style="font-size: 0.7rem; padding: 0.1rem 0.25rem;"/>
+                        </div>
+                    </div>
                 </div>
                 {/if}
             </div>
@@ -253,13 +312,24 @@
             </div>
         </div>
 
-        <!-- <div slot="selectedItem" class="p-1 small border col-12 col-sm-6 d-flex align-items-center gap-2" let:item>
-            <p class="text-secondary">{item.training.title}</p>
+        <div slot="selectedItem" class="p-1 small border" let:item>
+            {#if dataTab === DataTab.BY_TRAIN}
+            <p class="text-secondary">{item.email}</p>
+            <div class="d-flex gap-2 justify-space-between">
+                <p>{item.name}</p>
+                <p class="text-secondary">{formatDatetime(item.birthday, { includeTime: false })} 생</p>
+            </div>
+            {:else if dataTab === DataTab.BY_USER}
+            <p class="small" style="font-size: 0.8rem;">{item.title}</p>
+            {:else if dataTab === DataTab.REVOKE}
+            <p class="text-primary" style="font-size: 0.8rem;">{item.training.title}</p>
             <div class="d-flex gap-2 justify-space-between">
                 <p>{item.user.name}</p>
                 <p>+{item.amount}</p>
             </div>
-        </div> -->
+            {/if}
+            
+        </div>
 
         <div slot="searchOption" bind:this={searchBind}>
             {#if dataTab === DataTab.REVOKE}
@@ -290,16 +360,47 @@
                     />
                 </FormField>
             </div>
-            <div class="pb-1">
-                <TrainingSelector bind:trainingId />
-            </div>
             {/if}
+        </div>
+
+        <div slot="top" class="pt-1">
+            
+            <div class="row g-2">
+                {#if dataTab !== DataTab.BY_USER}
+
+                    {#if trainingId}
+                    <div class="col-12">
+                        {#await (async () => axios.get(`/api/static/trainingHeaderInfo?id=${trainingId}`))() then response}
+                            <TrainingHeaderIndicator trainingHeader={response.data} />
+                        {/await}
+
+                        {#await (async () => axios.get(`/api/static/trainingTypeInfo?id=${trainingTypeId}`))() then response}
+                            <TrainingTypeIndicator trainingType={response.data} clazz="mt-2" />
+                        {/await}
+                    </div>
+                    {/if}
+
+                <div class="col-12">
+                    <TrainingSelector bind:trainingId bind:trainingTypeId
+                        on:set={switchSortSchemaByTrainingId}
+                    />
+                </div>
+
+                {:else}
+                    <div class="col-12">
+                        <UserSelector  />
+                    </div>
+                {/if}
+            </div>
+
         </div>
 
     </DataViewer>
 </PageContainer>
 
 <DateSelector bind:this={dateSelector} />
+
+<UserTalentGranter bind:this={talentGranter}/>
 
 <style lang="scss">
 
@@ -310,17 +411,9 @@
 }
 
 .talent-amount {
-    min-width: 1.2rem;
+    min-width: 2rem;
     text-align: right;
     font-weight: bold;
-}
-
-.approve-stamp-wrap {
-    right: 0; 
-    top: 0.3rem; 
-    width: 3.5rem; 
-    height: 3.5rem; 
-    opacity: 0.1;
 }
 
 </style>

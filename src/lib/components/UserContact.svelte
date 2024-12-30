@@ -57,7 +57,7 @@
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <!-- svelte-ignore a11y-no-static-element-interactions -->
-<span class="{style ? '' : 'btn btn-sm btn-light'} text-truncate" {style} bind:this={element} on:click={fetchUserContact}>
+<span class="btn btn-sm btn-light text-truncate" {style} bind:this={element} on:click={fetchUserContact}>
     {buttonMessage || email}
 </span>
 

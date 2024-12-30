@@ -5,7 +5,7 @@
 
     export let categoryId: any = undefined;
     export let fetchPayload: any;
-    export let afterCallback: CallableFunction | undefined = undefined;
+    // export let afterCallback: CallableFunction | undefined = undefined;
     export let clazz = '';
     export let style = '';
 
@@ -21,7 +21,7 @@
         if (currentCategoryId) fetchPayload['categoryId'] = currentCategoryId
         else delete fetchPayload['categoryId']
 
-        await afterCallback?.();
+        // await afterCallback?.();
     }} bind:this={categorySelect} bind:value={categoryId}>
             <option value="0">전체</option>
             <option value="1">복음가진 중직자</option>

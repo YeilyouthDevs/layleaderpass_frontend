@@ -65,7 +65,7 @@ let logoutModal: Modal;
     <div class="border-bottom">
         <div id="indicator" class="p-3 d-flex flex-column gap-1">
           <div class="indicator-wrap">
-            <img class="indicator-icon" src="/images/remnant_icon.png" alt="유저 아이콘">
+            <img class="indicator-icon" src="/images/user_icon.png" alt="유저 아이콘">
             <div class="indicator-value">{$userStore.name}</div>
           </div>
           <div class="indicator-wrap">
